@@ -1,0 +1,101 @@
+apply plugin: "java-library"
+apply plugin: "eclipse"
+apply plugin: "maven"
+
+version = "1.0.0"
+
+def librariesDirectoryName = "libraries"
+def buildDirectoryName = "build"
+
+repositories {
+    jcenter()
+    mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+    compile "com.carrotsearch:hppc:0.8.1"
+    testImplementation "junit:junit:4.12"
+}
+
+eclipse {
+	classpath {
+		downloadSources=true
+	}
+    jdt {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "src"
+            srcDir "resources"
+        }
+    }
+    test {
+        java {
+            srcDir "test"
+        }
+    }
+}
+
+jar {
+	manifest {
+		attributes(
+			"Manifest-Version": version,
+			"Created-By": "Kudesunik"
+		)
+	}
+}
+
+task deployFatJar() {
+	description "Deploy PipelineTestProject fat jar to " + buildDirectoryName + " folder"
+	doLast {
+		copy {
+			from jar.archivePath
+			into buildDirectoryName
+		}
+		delete buildDirectoryName + "/classes", 
+			   buildDirectoryName + "/libs", 
+			   buildDirectoryName + "/tmp", 
+			   buildDirectoryName + "/scripts", 
+			   buildDirectoryName + "/install", 
+			   buildDirectoryName + "/distributions"
+	}
+}
+
+task buildFatJar(type: Jar) {
+	description "Build PipelineTestProject fat jar. Basically, for internal use, use deployFatJar task"
+	from {
+		configurations.compile.collect{it.isDirectory() ? it : zipTree(it)}
+	}
+	with jar
+}
+
+compileJava {
+    sourceCompatibility = "1.8"
+    options.incremental = true
+}
+
+uploadArchives {
+	repositories {
+		mavenDeployer {
+        	repository(url: repositoryUrl) {
+            	authentication(userName: uploadUserName, password: uploadPassword)
+        	}
+			pom.version = version + "-SNAPSHOT"
+        	pom.artifactId = "PipelineTestLibrary"
+        	pom.groupId = "ru.kudesunik.pipelinetestlibrary"
+    	}
+	}
+}
+
+buildFatJar.dependsOn clean
+buildFatJar.dependsOn buildNeeded
+buildNeeded.shouldRunAfter clean
+
+deployFatJar.dependsOn buildFatJar
+deployFatJar.shouldRunAfter buildFatJar
