@@ -15,7 +15,6 @@ repositories {
 
 dependencies {
     compile "com.carrotsearch:hppc:0.8.1"
-    compile "org.apache.maven.wagon:wagon-file:1.0-beta-3"
     testImplementation "junit:junit:4.12"
 }
 
@@ -52,6 +51,31 @@ jar {
 	}
 }
 
+task deployJar () {
+	description "Deploy jar to " + buildDirectoryName + " folder"
+    doLast {
+    	copy {
+            from configurations.runtime
+            into buildDirectoryName + "/" + librariesDirectoryName
+        }
+    	copy {
+            from "resources"
+            into buildDirectoryName + "/resources"
+        }
+    	copy {
+            from jar.archivePath
+            into buildDirectoryName
+            rename {project.name + "-" + version + "-SNAPSHOT" + ".jar"}
+        }
+        delete buildDirectoryName + "/classes", 
+        	   buildDirectoryName + "/libs", 
+        	   buildDirectoryName + "/tmp", 
+        	   buildDirectoryName + "/scripts", 
+        	   buildDirectoryName + "/install", 
+        	   buildDirectoryName + "/distributions"
+    }
+}
+
 task deployFatJar() {
 	description "Deploy PipelineTestProject fat jar to " + buildDirectoryName + " folder"
 	doLast {
@@ -81,18 +105,9 @@ compileJava {
     options.incremental = true
 }
 
-uploadArchives {
-	repositories {
-		mavenDeployer {
-        	repository(url: repositoryUrl) {
-            	authentication(userName: uploadUserName, password: uploadPassword)
-        	}
-			pom.version = version + "-SNAPSHOT"
-        	pom.artifactId = "PipelineTestLibrary"
-        	pom.groupId = "ru.kudesunik.pipelinetestlibrary"
-    	}
-	}
-}
+deployJar.dependsOn clean
+deployJar.dependsOn buildNeeded
+buildNeeded.shouldRunAfter clean
 
 buildFatJar.dependsOn clean
 buildFatJar.dependsOn buildNeeded
