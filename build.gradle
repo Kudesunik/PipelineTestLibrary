@@ -65,7 +65,7 @@ task deployJar () {
     	copy {
             from jar.archivePath
             into buildDirectoryName
-            rename {project.name + "-" + version + "-SNAPSHOT" + ".jar"}
+            rename {project.name + ".jar"}
         }
         delete buildDirectoryName + "/classes", 
         	   buildDirectoryName + "/libs", 
@@ -82,6 +82,7 @@ task deployFatJar() {
 		copy {
 			from jar.archivePath
 			into buildDirectoryName
+			rename {project.name + ".jar"}
 		}
 		delete buildDirectoryName + "/classes", 
 			   buildDirectoryName + "/libs", 
