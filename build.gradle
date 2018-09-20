@@ -10,6 +10,8 @@ apply plugin: "cobertura"
 
 version = "1.0.0"
 
+def nexusPassword = System.getenv("NexusPassword")
+
 def librariesDirectoryName = "libraries"
 def buildDirectoryName = "build"
 
@@ -113,8 +115,8 @@ task buildFatJar(type: Jar) {
 uploadArchives {
 	repositories {
 		mavenDeployer {
-        	repository(url: mavenUrl) {
-        		authentication(userName: mavenUserName, password: mavenPassword)
+        	repository(url: "https://repository.kudesunik.com/content/repositories/snapshots") {
+        		authentication(userName: "deployment", password: nexusPassword)
         	}
         	pom.groupId = "ru.kudesunik.pipelinetestlibrary"
         	pom.artifactId = "pipeline-test-library"
