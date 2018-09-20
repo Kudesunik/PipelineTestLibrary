@@ -10,4 +10,13 @@ public class PipelineTestLibrary {
 		}};
 		System.out.println("Test result: " + testList.get(0));
 	}
+	
+	public void testLocal() {
+		
+	}
+	
+	public static void main(String[] args) {
+		test();
+		(new PipelineTestLibrary()).testLocal();
+	}
 }
